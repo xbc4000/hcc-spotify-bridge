@@ -1,0 +1,46 @@
+services:
+  hcc-spotify-bridge:
+    build: .
+    image: hcc-spotify-bridge:latest
+    container_name: hcc-spotify-bridge
+    restart: unless-stopped
+
+    # host networking is required for Spotify Connect mDNS/zeroconf advertisement
+    # to reach other devices on the LAN. Bridge networks won't propagate mDNS.
+    network_mode: host
+
+    # Pass through ALSA character devices so the container can write to /dev/snd
+    devices:
+      - /dev/snd:/dev/snd
+
+    # The container's `node` user must be able to read/write the audio devices.
+    # Host audio group GID is typically 29 on Debian-based systems. Verify with:
+    #   getent group audio
+    # If yours differs, override LIBRESPOT_GID env var (not used here, this is
+    # group_add — supplementary group for the container process).
+    group_add:
+      - audio
+
+    environment:
+      - NODE_ENV=production
+      - BRIDGE_PORT=3081
+      - LIBRESPOT_NAME=NAD-AVR
+      - LIBRESPOT_DEVICE=hw:0,0
+      - LIBRESPOT_DEVICE_TYPE=avr
+      - LIBRESPOT_BITRATE=320
+      - LIBRESPOT_FORMAT=S32
+      - LIBRESPOT_INITIAL_VOLUME=100
+
+    volumes:
+      - hcc-spotify-data:/app/data
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3081/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  hcc-spotify-data:
+    driver: local

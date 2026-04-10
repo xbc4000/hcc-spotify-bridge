@@ -1,0 +1,13 @@
+{
+  "name": "hcc-spotify-bridge",
+  "version": "0.1.0",
+  "description": "Stable Spotify Connect bridge for high-end audio — librespot supervisor with HTTP/WS API. No bullshit.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}
