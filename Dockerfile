@@ -1,24 +1,30 @@
 # =============================================================================
 # HCC Spotify Bridge — librespot supervisor for high-end audio
 # =============================================================================
-# Stage 1: download a known-good librespot binary for arm64 (Pi 4)
-# Stage 2: minimal Node runtime with the supervisor
+# Two-stage build:
+#  1. librespot-fetch: install raspotify (Debian package) just to grab the
+#     librespot binary, then discard the rest. Raspotify packages the same
+#     librespot we want, properly built for arm64. We replace its broken
+#     systemd unit with our own Node.js supervisor.
+#  2. runtime: minimal Node + alsa-utils + the extracted librespot binary.
 # =============================================================================
 
 FROM debian:bookworm-slim AS librespot-fetch
-ARG LIBRESPOT_VERSION=0.6.0
 ARG TARGETARCH=arm64
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates xz-utils \
+    curl ca-certificates gnupg \
  && rm -rf /var/lib/apt/lists/*
-WORKDIR /tmp/librespot
-# Pinned upstream release. ARM64 build ships statically with the audio backends.
-RUN curl -fsSL "https://github.com/librespot-org/librespot/releases/download/v${LIBRESPOT_VERSION}/librespot-${LIBRESPOT_VERSION}-aarch64-unknown-linux-gnu.tar.xz" \
-      -o librespot.tar.xz \
- && tar -xJf librespot.tar.xz \
- && find . -name librespot -type f -exec mv {} /usr/local/bin/librespot \; \
- && chmod +x /usr/local/bin/librespot \
- && /usr/local/bin/librespot --version
+
+# Add the Raspotify apt repo (provides a properly built librespot for arm64).
+# We're using Raspotify only as a delivery mechanism for librespot — we will
+# NOT install or run the raspotify systemd service.
+RUN curl -fsSL https://dtcooper.github.io/raspotify/key.asc | gpg --dearmor -o /usr/share/keyrings/raspotify_key.gpg \
+ && chmod 644 /usr/share/keyrings/raspotify_key.gpg \
+ && echo 'deb [signed-by=/usr/share/keyrings/raspotify_key.gpg] https://dtcooper.github.io/raspotify raspotify main' \
+    > /etc/apt/sources.list.d/raspotify.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends raspotify \
+ && /usr/bin/librespot --version
 
 # -----------------------------------------------------------------------------
 
@@ -29,9 +35,8 @@ LABEL org.opencontainers.image.description="Stable Spotify Connect bridge for hi
 # Runtime deps:
 # - alsa-utils for diagnostics + speaker-test
 # - libasound2 for librespot's alsa backend
-# - libpulse0 stub (some librespot builds expect it for symbol resolution; harmless)
-# - dnsutils for connectivity diag
 # - tini as PID 1 so signals propagate cleanly
+# - wget for the --onevent hook script
 RUN apt-get update && apt-get install -y --no-install-recommends \
     alsa-utils \
     libasound2 \
@@ -40,8 +45,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy the pinned librespot binary
-COPY --from=librespot-fetch /usr/local/bin/librespot /usr/local/bin/librespot
+# Copy the librespot binary from the fetch stage
+COPY --from=librespot-fetch /usr/bin/librespot /usr/local/bin/librespot
+RUN chmod +x /usr/local/bin/librespot && /usr/local/bin/librespot --version
 
 WORKDIR /app
 COPY package*.json ./
@@ -54,8 +60,6 @@ RUN chmod +x scripts/*.sh 2>/dev/null || true
 # Persistent data (auth blob, cache)
 RUN mkdir -p /app/data && chown -R node:audio /app/data
 
-# Audio group needs to match host audio gid for /dev/snd access
-# We pass --group-add audio at runtime instead.
 ENV NODE_ENV=production
 ENV BRIDGE_PORT=3081
 ENV LIBRESPOT_BIN=/usr/local/bin/librespot
