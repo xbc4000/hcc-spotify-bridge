@@ -122,15 +122,20 @@ app.post('/event', function (req, res) {
             sup.log('event handler error: ' + e.message, 'warn');
         }
 
-        // CEC bridge: translate librespot volume_changed into NAD CEC steps
+        // CEC bridge: translate librespot volume_changed into NAD CEC steps.
+        // The phone Spotify slider is the user input; we drop the librespot
+        // digital volume on the floor (we're bit-perfect at slider=100) and
+        // instead fire CEC volume up/down on the AVR. This makes the phone
+        // slider drive the actual NAD analog amplifier directly.
         if (cecBridgeVolume && cec.ready && (event === 'volume_changed' || event === 'volume_set')) {
             var newVol = sup.state.volume;  // already 0-100
             if (typeof newVol === 'number' && lastSpotifyVolume !== null) {
                 var diff = newVol - lastSpotifyVolume;
-                // Each NAD CEC volume step is roughly 1% of its scale; map roughly 5% Spotify steps -> 1 CEC press
-                var steps = Math.round(diff / 5);
+                // Each Spotify slider tick of ~3% = 1 NAD CEC step
+                var steps = Math.round(diff / 3);
                 if (steps !== 0) {
-                    sup.log('CEC bridge: vol ' + lastSpotifyVolume + '%→' + newVol + '%, sending ' + steps + ' step(s)', 'info');
+                    sup.log('CEC bridge: vol ' + lastSpotifyVolume + '%→' + newVol + '% (Δ=' + diff + '), sending ' + Math.abs(steps) + ' step(s) ' + (steps > 0 ? 'UP' : 'DOWN'), 'info');
+                    // volumeStep already uses volumeUp/volumeDown internally, which respect CEC_VOLUME_SWAP
                     cec.volumeStep(steps).catch(function (e) {
                         sup.log('CEC step error: ' + e.message, 'warn');
                     });
@@ -207,6 +212,19 @@ app.post('/cec/raw', async function (req, res) {
 
 app.get('/cec/status', function (req, res) {
     res.json(cec.getStatus());
+});
+
+// Toggle / set the volume up-down swap at runtime (no restart needed)
+app.post('/cec/swap', function (req, res) {
+    var newVal;
+    if (req.body && typeof req.body.enabled === 'boolean') {
+        newVal = req.body.enabled;
+    } else {
+        // Toggle
+        newVal = !cec.opts.volumeSwap;
+    }
+    cec.setSwap(newVal);
+    res.json({ ok: true, volumeSwap: cec.opts.volumeSwap });
 });
 
 // Global error handler — prevents bad webhook JSON from crashing the supervisor

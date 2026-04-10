@@ -80,11 +80,17 @@ class CECController {
 
     async volumeUp() {
         var k = this.opts.volumeSwap ? 'volume-down' : 'volume-up';
+        if (this.log) this.log('CEC: volumeUp() → sending ui-cmd=' + k + ' (swap=' + this.opts.volumeSwap + ')');
         return this.sendKey(k);
     }
     async volumeDown() {
         var k = this.opts.volumeSwap ? 'volume-up' : 'volume-down';
+        if (this.log) this.log('CEC: volumeDown() → sending ui-cmd=' + k + ' (swap=' + this.opts.volumeSwap + ')');
         return this.sendKey(k);
+    }
+    setSwap(enabled) {
+        this.opts.volumeSwap = !!enabled;
+        if (this.log) this.log('CEC: volume swap = ' + this.opts.volumeSwap);
     }
     async mute() {
         return this.sendKey('mute');
