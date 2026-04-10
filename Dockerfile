@@ -40,6 +40,7 @@ LABEL org.opencontainers.image.description="Stable Spotify Connect bridge for hi
 RUN apt-get update && apt-get install -y --no-install-recommends \
     alsa-utils \
     libasound2 \
+    libpulse0 \
     ca-certificates \
     tini \
     wget \
