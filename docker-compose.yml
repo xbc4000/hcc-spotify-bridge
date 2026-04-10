@@ -33,7 +33,7 @@ services:
       - LIBRESPOT_VOLUME_CTRL=log
       - CEC_DEVICE=/dev/cec0
       - CEC_TARGET_LA=5
-      - CEC_VOLUME_SWAP=1
+      - CEC_VOLUME_SWAP=0
       - CEC_BRIDGE_VOLUME=on
 
     volumes:

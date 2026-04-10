@@ -47,7 +47,7 @@ var sup = new LibrespotSupervisor(supOpts);
 var cec = new CECController({
     device: process.env.CEC_DEVICE || '/dev/cec0',
     targetLogicalAddress: parseInt(process.env.CEC_TARGET_LA || '5'),
-    volumeSwap: (process.env.CEC_VOLUME_SWAP || '1') === '1',
+    volumeSwap: (process.env.CEC_VOLUME_SWAP || '0') === '1',
     claimType: 'playback'
 });
 cec.log = function (msg) { sup.log(msg, 'info'); };
