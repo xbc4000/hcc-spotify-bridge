@@ -38,14 +38,19 @@ class CECController {
         var self = this;
         return new Promise(function (resolve, reject) {
             var fullArgs = ['-d', self.opts.device].concat(args);
+            if (self.log) self.log('CEC exec: cec-ctl ' + fullArgs.join(' '));
             execFile('cec-ctl', fullArgs, { timeout: timeoutMs || 4000 }, function (err, stdout, stderr) {
                 if (err) {
                     self.lastError = err.message + (stderr ? ' | ' + stderr : '');
+                    if (self.log) self.log('CEC exec error: ' + self.lastError, 'warn');
                     reject(err);
                     return;
                 }
                 self.lastCommandAt = Date.now();
                 self.commandCount++;
+                if (self.log && stdout && stdout.trim()) {
+                    self.log('CEC reply: ' + stdout.trim().split('\n').slice(0, 3).join(' | '));
+                }
                 resolve(stdout);
             });
         });
