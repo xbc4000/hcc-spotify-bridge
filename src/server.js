@@ -48,7 +48,8 @@ var cec = new CECController({
     device: process.env.CEC_DEVICE || '/dev/cec0',
     targetLogicalAddress: parseInt(process.env.CEC_TARGET_LA || '5'),
     volumeSwap: (process.env.CEC_VOLUME_SWAP || '0') === '1',
-    claimType: 'playback'
+    claimType: 'playback',
+    ourPhysAddr: process.env.CEC_OUR_PHYS_ADDR || '1.2.0.0'
 });
 cec.log = function (msg) { sup.log(msg, 'info'); };
 

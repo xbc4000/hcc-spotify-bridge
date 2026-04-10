@@ -21,8 +21,9 @@ class CECController {
         this.opts = Object.assign({
             device: '/dev/cec0',
             targetLogicalAddress: 5,   // Audio System
-            volumeSwap: true,           // NAD swaps up/down
-            claimType: 'playback'      // We act as a Playback Device
+            volumeSwap: false,
+            claimType: 'playback',     // We act as a Playback Device
+            ourPhysAddr: '1.2.0.0'     // Our physical address on the bus (NAD HDMI 2)
         }, opts || {});
         this.ready = false;
         this.lastError = null;
@@ -112,10 +113,13 @@ class CECController {
         }
     }
 
-    // Power on/off the audio system
+    // Power on the audio system.
+    // NAD T748 ignores the standard --image-view-on / --text-view-on wake
+    // commands when in deep CEC sleep, but reliably wakes on an
+    // ACTIVE_SOURCE broadcast announcing our physical address. We use that.
     async powerOn() {
-        var to = String(this.opts.targetLogicalAddress);
-        return this.cecExec(['--to', to, '--image-view-on']);
+        var pa = this.opts.ourPhysAddr || '1.2.0.0';
+        return this.cecExec(['--to', '15', '--active-source', 'phys-addr=' + pa]);
     }
     async powerOff() {
         var to = String(this.opts.targetLogicalAddress);
