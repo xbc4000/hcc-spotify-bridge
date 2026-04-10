@@ -66,7 +66,7 @@ class LibrespotSupervisor extends EventEmitter {
             '--device', o.device,
             '--format', o.format,
             '--initial-volume', String(o.initialVolume),
-            '--volume-ctrl', 'fixed',         // NAD does volume, librespot is wide open
+            '--volume-ctrl', o.volumeCtrl,    // 'log' = standard Spotify Connect (phone slider works)
             '--cache', o.cache,
             '--system-cache', o.cache,
             '--enable-volume-normalisation',  // smooths out album-to-album loudness
