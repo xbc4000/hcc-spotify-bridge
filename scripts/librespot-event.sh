@@ -20,8 +20,12 @@ EVENT="${PLAYER_EVENT:-unknown}"
 #   ITEM_TYPE, LANGUAGE, POSITION_MS, VOLUME, USER_NAME, SHOW_NAME, etc.
 
 esc() {
-    # JSON-escape a value (basic — quotes and backslashes)
-    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+    # JSON-escape a value: backslashes, quotes, control chars (newlines, tabs, etc)
+    printf '%s' "$1" \
+        | sed 's/\\/\\\\/g' \
+        | sed 's/"/\\"/g' \
+        | tr -d '\000-\031' \
+        | tr '\t' ' '
 }
 
 JSON_FIELDS=""

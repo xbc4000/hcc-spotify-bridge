@@ -95,12 +95,23 @@ app.post('/restart', function (req, res) {
 // Internal: called by the --onevent hook script
 // librespot passes event data via env vars; the shell hook re-posts as JSON
 app.post('/event', function (req, res) {
-    var event = req.body.event;
-    var data = req.body.data || {};
+    var event = req.body && req.body.event;
+    var data = (req.body && req.body.data) || {};
     if (event) {
-        sup.updateState(event, data);
+        try {
+            sup.updateState(event, data);
+        } catch (e) {
+            sup.log('event handler error: ' + e.message, 'warn');
+        }
     }
     res.json({ ok: true });
+});
+
+// Global error handler — prevents bad webhook JSON from crashing the supervisor
+app.use(function (err, req, res, next) {
+    sup.log('HTTP error on ' + req.method + ' ' + req.url + ': ' + err.message, 'warn');
+    if (res.headersSent) return next(err);
+    res.status(400).json({ error: 'bad request', message: err.message });
 });
 
 const server = http.createServer(app);
