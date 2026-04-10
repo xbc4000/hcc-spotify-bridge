@@ -169,6 +169,42 @@ app.post('/cec/power/off', async function (req, res) {
     try { await cec.powerOff(); res.json({ ok: true }); }
     catch (e) { res.status(500).json({ error: e.message }); }
 });
+
+// ── Source / input switching ──
+app.post('/cec/source/active', async function (req, res) {
+    try {
+        var pa = req.body && req.body.phys_addr;
+        await cec.activeSource(pa);
+        res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/source/inactive', async function (req, res) {
+    try { await cec.inactiveSource(req.body && req.body.phys_addr); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/source/set', async function (req, res) {
+    var pa = req.body && req.body.phys_addr;
+    if (!pa) return res.status(400).json({ error: 'missing phys_addr' });
+    try { await cec.setStreamPath(pa); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Generic remote key (any User Control opcode) ──
+app.post('/cec/remote/:key', async function (req, res) {
+    try { await cec.key(req.params.key); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Raw passthrough for power users ──
+app.post('/cec/raw', async function (req, res) {
+    var args = req.body && req.body.args;
+    if (!Array.isArray(args)) return res.status(400).json({ error: 'args must be an array' });
+    try {
+        var out = await cec.raw(args);
+        res.json({ ok: true, output: out });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/cec/status', function (req, res) {
     res.json(cec.getStatus());
 });

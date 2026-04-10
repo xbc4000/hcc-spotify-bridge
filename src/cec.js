@@ -111,6 +111,58 @@ class CECController {
         return this.cecExec(['--to', to, '--standby']);
     }
 
+    // ── Source/input switching ──
+    // Tell the AVR to switch to a specific HDMI input by physical address.
+    // physAddr is a CEC physical address like "2.0.0.0" (HDMI 2 on the AVR)
+    // For NAD T748: HDMI inputs are 1.0.0.0 / 2.0.0.0 / 3.0.0.0 / etc
+    async setStreamPath(physAddr) {
+        var to = String(this.opts.targetLogicalAddress);
+        return this.cecExec(['--to', to, '--set-stream-path', 'phys-addr=' + physAddr]);
+    }
+
+    // Broadcast that this device wants to be the active source — works for
+    // making the AVR switch to the Pi's input automatically
+    async activeSource(physAddr) {
+        physAddr = physAddr || '1.2.0.0';  // default = our discovered phys addr
+        return this.cecExec(['--to', '15', '--active-source', 'phys-addr=' + physAddr]);
+    }
+
+    // Inactive source = stop being the source (AVR may switch away)
+    async inactiveSource(physAddr) {
+        physAddr = physAddr || '1.2.0.0';
+        var to = String(this.opts.targetLogicalAddress);
+        return this.cecExec(['--to', to, '--inactive-source', 'phys-addr=' + physAddr]);
+    }
+
+    // Request the AVR to send menu commands
+    async menuShow() {
+        var to = String(this.opts.targetLogicalAddress);
+        return this.sendKey('display-information');
+    }
+
+    // ── Send a raw user-control key to the AVR ──
+    // Valid ui-cmd values from cec-ctl --user-control-pressed --help:
+    //   select, up, down, left, right, root-menu, contents-menu,
+    //   exit, page-up, page-down, volume-up, volume-down, mute,
+    //   play, stop, pause, record, rewind, fast-forward, eject,
+    //   forward, backward, angle, sub-picture, video-on-demand,
+    //   electronic-program-guide, timer-programming, initial-config,
+    //   number-0..9, dot, enter, clear, channel-up, channel-down,
+    //   sound-select, input-select, display-information, help,
+    //   power, restore-volume-function, tune,
+    //   mute-function, restore-volume, function-tune
+    // We expose this generic so the dashboard can fire any of them.
+    async key(uiCmd) {
+        return this.sendKey(uiCmd);
+    }
+
+    // ── Raw CEC opcode for power users ──
+    // Lets you send any cec-ctl flag directly. Use carefully.
+    async raw(args) {
+        if (!Array.isArray(args)) throw new Error('args must be an array');
+        return this.cecExec(args);
+    }
+
     // Optional: query the AVR's current audio status (volume + mute state)
     // NAD T748 doesn't always reply to this — best-effort.
     async getAudioStatus() {
