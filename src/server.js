@@ -32,6 +32,7 @@ var supOpts = {
     bitrate: parseInt(process.env.LIBRESPOT_BITRATE || '320'),
     format: process.env.LIBRESPOT_FORMAT || 'S32',
     initialVolume: parseInt(process.env.LIBRESPOT_INITIAL_VOLUME || '100'),
+    zeroconfPort: parseInt(process.env.LIBRESPOT_ZEROCONF_PORT || '36879'),
     cache: CACHE_DIR,
     onEventScript: '/app/scripts/librespot-event.sh',
     bridgePort: PORT,

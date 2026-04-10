@@ -71,6 +71,7 @@ class LibrespotSupervisor extends EventEmitter {
             '--system-cache', o.cache,
             '--enable-volume-normalisation',  // smooths out album-to-album loudness
             '--normalisation-pregain', '0',
+            '--zeroconf-port', String(o.zeroconfPort),  // pinned for firewall
             '--quiet'
         ];
 
