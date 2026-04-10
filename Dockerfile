@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     alsa-utils \
     libasound2 \
     libpulse0 \
+    v4l-utils \
     ca-certificates \
     tini \
     wget \
@@ -73,6 +74,11 @@ ENV LIBRESPOT_FORMAT=S16
 ENV LIBRESPOT_INITIAL_VOLUME=100
 ENV LIBRESPOT_VOLUME_CTRL=log
 ENV LIBRESPOT_ZEROCONF_PORT=36879
+# CEC config
+ENV CEC_DEVICE=/dev/cec0
+ENV CEC_TARGET_LA=5
+ENV CEC_VOLUME_SWAP=1
+ENV CEC_BRIDGE_VOLUME=on
 
 EXPOSE 3081
 

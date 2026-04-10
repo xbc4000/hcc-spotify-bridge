@@ -12,24 +12,29 @@ services:
     # Pass through ALSA character devices so the container can write to /dev/snd
     devices:
       - /dev/snd:/dev/snd
+      - /dev/cec0:/dev/cec0
 
-    # The container's `node` user must be able to read/write the audio devices.
-    # Host audio group GID is typically 29 on Debian-based systems. Verify with:
-    #   getent group audio
-    # If yours differs, override LIBRESPOT_GID env var (not used here, this is
-    # group_add — supplementary group for the container process).
+    # The container's `node` user must be able to read/write the audio devices
+    # AND the CEC device. /dev/cec0 is owned by root:video on the Pi. Both gids
+    # are added as supplementary groups so the node user has access.
     group_add:
       - audio
+      - video
 
     environment:
       - NODE_ENV=production
       - BRIDGE_PORT=3081
       - LIBRESPOT_NAME=NAD-AVR
-      - LIBRESPOT_DEVICE=hw:0,0
+      - LIBRESPOT_DEVICE=hdmi:CARD=vc4hdmi0,DEV=0
       - LIBRESPOT_DEVICE_TYPE=avr
       - LIBRESPOT_BITRATE=320
-      - LIBRESPOT_FORMAT=S32
+      - LIBRESPOT_FORMAT=S16
       - LIBRESPOT_INITIAL_VOLUME=100
+      - LIBRESPOT_VOLUME_CTRL=log
+      - CEC_DEVICE=/dev/cec0
+      - CEC_TARGET_LA=5
+      - CEC_VOLUME_SWAP=1
+      - CEC_BRIDGE_VOLUME=on
 
     volumes:
       - hcc-spotify-data:/app/data

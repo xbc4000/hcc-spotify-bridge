@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { WebSocketServer } = require('ws');
 const { LibrespotSupervisor } = require('./supervisor');
+const { CECController } = require('./cec');
 
 const PORT = parseInt(process.env.BRIDGE_PORT || '3081');
 const CACHE_DIR = process.env.LIBRESPOT_CACHE || '/app/data/librespot';
@@ -41,6 +42,20 @@ var supOpts = {
 };
 
 var sup = new LibrespotSupervisor(supOpts);
+
+// CEC controller — claims a Playback LA, sends volume/mute to NAD AVR
+var cec = new CECController({
+    device: process.env.CEC_DEVICE || '/dev/cec0',
+    targetLogicalAddress: parseInt(process.env.CEC_TARGET_LA || '5'),
+    volumeSwap: (process.env.CEC_VOLUME_SWAP || '1') === '1',
+    claimType: 'playback'
+});
+cec.log = function (msg) { sup.log(msg, 'info'); };
+
+// CEC bridge mode: when librespot's volume changes, also fire CEC steps
+// so phone slider drives the actual NAD volume.
+var cecBridgeVolume = (process.env.CEC_BRIDGE_VOLUME || 'on') === 'on';
+var lastSpotifyVolume = null;
 
 // In-memory ring buffer of recent log lines
 var LOG_BUFFER_SIZE = 500;
@@ -74,7 +89,9 @@ app.get('/health', function (req, res) {
 });
 
 app.get('/status', function (req, res) {
-    res.json(sup.getStatus());
+    var s = sup.getStatus();
+    s.cec = cec.getStatus();
+    res.json(s);
 });
 
 app.get('/logs', function (req, res) {
@@ -104,8 +121,56 @@ app.post('/event', function (req, res) {
         } catch (e) {
             sup.log('event handler error: ' + e.message, 'warn');
         }
+
+        // CEC bridge: translate librespot volume_changed into NAD CEC steps
+        if (cecBridgeVolume && cec.ready && (event === 'volume_changed' || event === 'volume_set')) {
+            var newVol = sup.state.volume;  // already 0-100
+            if (typeof newVol === 'number' && lastSpotifyVolume !== null) {
+                var diff = newVol - lastSpotifyVolume;
+                // Each NAD CEC volume step is roughly 1% of its scale; map roughly 5% Spotify steps -> 1 CEC press
+                var steps = Math.round(diff / 5);
+                if (steps !== 0) {
+                    sup.log('CEC bridge: vol ' + lastSpotifyVolume + '%→' + newVol + '%, sending ' + steps + ' step(s)', 'info');
+                    cec.volumeStep(steps).catch(function (e) {
+                        sup.log('CEC step error: ' + e.message, 'warn');
+                    });
+                }
+            }
+            if (typeof newVol === 'number') lastSpotifyVolume = newVol;
+        }
     }
     res.json({ ok: true });
+});
+
+// ── CEC routes ──
+app.post('/cec/vol/up', async function (req, res) {
+    try { await cec.volumeUp(); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/vol/down', async function (req, res) {
+    try { await cec.volumeDown(); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/mute', async function (req, res) {
+    try { await cec.mute(); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/key', async function (req, res) {
+    var key = req.body && req.body.key;
+    if (!key) return res.status(400).json({ error: 'missing key' });
+    try { await cec.sendKey(key); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/power/on', async function (req, res) {
+    try { await cec.powerOn(); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/cec/power/off', async function (req, res) {
+    try { await cec.powerOff(); res.json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get('/cec/status', function (req, res) {
+    res.json(cec.getStatus());
 });
 
 // Global error handler — prevents bad webhook JSON from crashing the supervisor
@@ -161,6 +226,12 @@ server.listen(PORT, '0.0.0.0', function () {
     sup.log('device name: "' + supOpts.name + '" (' + supOpts.deviceType + ')', 'info');
     sup.log('audio device: ' + supOpts.device + ' format=' + supOpts.format + ' bitrate=' + supOpts.bitrate, 'info');
     sup.log('cache: ' + supOpts.cache, 'info');
+
+    // Initialize CEC controller — best-effort, won't block librespot
+    cec.init().catch(function (e) {
+        sup.log('CEC init error (audio still works without CEC): ' + e.message, 'warn');
+    });
+
     // Spawn librespot
     sup.spawn();
 });
