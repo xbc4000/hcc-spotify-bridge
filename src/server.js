@@ -84,6 +84,17 @@ const app = express();
 app.use(express.json({ limit: '64kb' }));
 app.use(express.urlencoded({ extended: true, limit: '64kb' }));
 
+// CORS — allow any origin to read/post. Single-user internal network app,
+// no auth on the bridge; the HCC dashboard itself runs on a different port
+// (3080) so without CORS headers the browser blocks all cross-origin requests.
+app.use(function (req, res, next) {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+});
+
 app.get('/health', function (req, res) {
     res.json({ ok: true, running: sup.stats.running });
 });
