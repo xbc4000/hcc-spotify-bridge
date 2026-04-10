@@ -210,11 +210,26 @@ class LibrespotSupervisor extends EventEmitter {
         if (data) {
             if (data.TRACK_ID || data.track_id) this.state.track_id = data.TRACK_ID || data.track_id;
             if (data.NAME) this.state.track = data.NAME;
-            if (data.ARTISTS) this.state.artist = data.ARTISTS;
+            // ARTISTS is a delimited string from librespot — split and rejoin
+            // with comma+space for human display. librespot uses '\u001D' (group
+            // separator) as the delimiter; the event hook strips control chars
+            // first which may collapse them, so handle both cases.
+            if (data.ARTISTS) {
+                var artists = String(data.ARTISTS);
+                // Try splitting on common Spotify multi-artist delimiters
+                if (artists.indexOf('\u001D') !== -1) {
+                    artists = artists.split('\u001D').filter(Boolean).join(', ');
+                }
+                this.state.artist = artists;
+            }
             if (data.ALBUM) this.state.album = data.ALBUM;
             if (data.DURATION_MS) this.state.duration_ms = parseInt(data.DURATION_MS);
             if (data.POSITION_MS) this.state.position_ms = parseInt(data.POSITION_MS);
-            if (data.VOLUME) this.state.volume = parseInt(data.VOLUME);
+            // librespot volume is 0-65535, normalize to 0-100
+            if (data.VOLUME) {
+                var raw = parseInt(data.VOLUME);
+                this.state.volume = Math.round((raw / 65535) * 100);
+            }
             if (event === 'playing') this.state.playing = true;
             if (event === 'paused' || event === 'stopped') this.state.playing = false;
         }
