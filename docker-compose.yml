@@ -38,6 +38,11 @@ services:
 
     volumes:
       - hcc-spotify-data:/app/data
+      # mDNS / Spotify Connect advertisement: librespot needs the host avahi
+      # daemon (talked to over D-Bus). Without these mounts the container
+      # cannot announce itself on the LAN and Spotify never sees it.
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+      - /var/run/dbus:/var/run/dbus
 
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3081/health"]
