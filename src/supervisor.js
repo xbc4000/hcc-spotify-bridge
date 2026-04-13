@@ -65,7 +65,6 @@ class LibrespotSupervisor extends EventEmitter {
             '--backend', 'alsa',
             '--device', o.device,
             '--format', o.format,
-            '--alsa-buffer-size', '32768',
             '--initial-volume', String(o.initialVolume),
             '--volume-ctrl', o.volumeCtrl,    // 'log' = phone slider works AND fires volume_changed events for CEC bridge
             '--cache', o.cache,
@@ -108,7 +107,7 @@ class LibrespotSupervisor extends EventEmitter {
         }
 
         try {
-            this.proc = spawn(this.opts.bin, args, {
+            this.proc = spawn('nice', ['-n', '-10', this.opts.bin].concat(args), {
                 env: Object.assign({}, process.env, {
                     // Pass to onevent hook so it can post back to us
                     HCC_BRIDGE_PORT: String(this.opts.bridgePort || 3081),
