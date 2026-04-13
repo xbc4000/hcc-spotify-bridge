@@ -65,8 +65,9 @@ class LibrespotSupervisor extends EventEmitter {
             '--backend', 'alsa',
             '--device', o.device,
             '--format', o.format,
+            '--alsa-buffer-size', '32768',
             '--initial-volume', String(o.initialVolume),
-            '--volume-ctrl', o.volumeCtrl,    // 'log' = standard Spotify Connect (phone slider works)
+            '--volume-ctrl', o.volumeCtrl,    // 'log' = phone slider works AND fires volume_changed events for CEC bridge
             '--cache', o.cache,
             '--system-cache', o.cache,
             '--enable-volume-normalisation',  // smooths out album-to-album loudness
