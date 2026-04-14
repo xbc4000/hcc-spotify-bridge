@@ -1,95 +1,146 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/librespot-Pinned-1DB954?style=for-the-badge&logo=spotify&logoColor=white" />
-  <img src="https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/ALSA-Bit--Perfect-FF6600?style=for-the-badge&logoColor=white" />
-  <img src="https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/WebSocket-Live_Status-00B7FF?style=for-the-badge&logoColor=white" />
-</p>
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/github/last-commit/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF" />
-  <img src="https://img.shields.io/github/repo-size/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF" />
-  <img src="https://img.shields.io/github/license/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF" />
-  <img src="https://img.shields.io/badge/Audio-320kbps_S32-1DB954?style=flat-square" />
-  <img src="https://img.shields.io/badge/Volume-AVR_Passthrough-FF00B2?style=flat-square" />
-</p>
+<img src="social-preview.png" alt="HCC Spotify Bridge" width="880"/>
 
-<h1 align="center">HCC SPOTIFY BRIDGE</h1>
+# HCC SPOTIFY BRIDGE
 
-<p align="center">
-  <strong>Stable Spotify Connect bridge for high-end audio.</strong><br>
-  <strong>Bit-perfect ALSA · auto-restart · HTTP/WebSocket API · HCC dashboard integration</strong><br>
-  Wraps the official librespot binary with a Node.js supervisor. Built because Raspotify is unreliable.
-</p>
+**Spotify Connect + HDMI-CEC for high-end audio, bit-perfect to the AVR.**
 
-<p align="center">
-  <img src="social-preview.png" width="720" />
-</p>
+librespot supervised with auto-restart · direct ALSA bit-perfect passthrough · full HDMI-CEC control of the NAD (power, volume, mute, source, remote keys) · HTTP + WebSocket API · HCC Dashboard live Now-Playing and Control panels
+
+[![librespot](https://img.shields.io/badge/librespot-Pinned-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](#)
+[![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](#)
+[![ALSA](https://img.shields.io/badge/ALSA-Bit--Perfect-FF6600?style=for-the-badge&logoColor=white)](#)
+[![HDMI-CEC](https://img.shields.io/badge/HDMI--CEC-AVR_Control-FF00B2?style=for-the-badge&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Live_Status-00B7FF?style=for-the-badge&logoColor=white)](#)
+
+![GitHub last commit](https://img.shields.io/github/last-commit/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF)
+![GitHub repo size](https://img.shields.io/github/repo-size/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF)
+![Audio](https://img.shields.io/badge/Audio-320kbps_S32-1DB954?style=flat-square)
+![Volume](https://img.shields.io/badge/Volume-AVR_Passthrough-FF00B2?style=flat-square)
+![CEC routes](https://img.shields.io/badge/CEC_Routes-11-FF00B2?style=flat-square)
+
+</div>
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [Why This Exists](#-why-this-exists)
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Configuration](#-configuration)
-- [Deploy](#-deploy)
-- [API](#-api)
-- [Raspotify Comparison](#-raspotify-comparison)
+- [Why This Exists](#why-this-exists)
+- [Features](#features)
+- [Where It Shows Up](#where-it-shows-up)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [Deploy](#deploy)
+- [API](#api)
+- [HDMI-CEC](#hdmi-cec)
+- [Raspotify Comparison](#raspotify-comparison)
 
 ---
 
-## 💡 Why This Exists
+## Why This Exists
 
 Raspotify crashes on long-running setups. It doesn't restart cleanly. The package lags upstream librespot by months. Configuration is a flat text file with no visibility into what's happening. When it goes silent on a Friday night, you're SSHing into a Raspberry Pi to restart a systemd unit while your music is dead.
 
-This bridge fixes all of that.
+And even when it works, it only does *half the job*: audio. The AVR still needs a physical remote for volume, power, and input switching. That breaks the dream of "one place to control the listening room."
+
+This bridge fixes both problems: **supervised librespot + HDMI-CEC control of the AVR** from the same HTTP/WebSocket API.
 
 ---
 
-## ✨ Features
+## Features
 
+### Audio Path
 - **Managed librespot** — spawns as a subprocess, auto-restarts on any crash with exponential backoff (1s → 30s max), resets after 60s of stability
 - **Bit-perfect ALSA** — direct `hw:0,0` passthrough, no PulseAudio, no PipeWire, no resampling
 - **Fixed volume** — software volume disabled (`--volume-ctrl fixed`), your AVR controls the volume
 - **Volume normalisation** — smooths album-to-album loudness differences
-- **Event capture** — every librespot state change (play, pause, track change, connect, disconnect) captured via `--onevent` hook and exposed over HTTP/WS
-- **Live dashboard** — HCC dashboard shows real-time playback status without polling Spotify's Web API
+- **320 kbps / S32** — Spotify's top-tier bitrate piped through as signed 32-bit native
 - **Pinned binary** — librespot version locked in the Dockerfile, upgrades are deliberate
 - **Tini PID 1** — proper signal propagation, clean container shutdown
 
----
+### HDMI-CEC (NAD AVR remote)
+- **Volume** — up, down, absolute set, mute toggle
+- **Power** — on, standby
+- **Source** — active / inactive, set HDMI input
+- **Remote keys** — play, pause, stop, prev, next, menu, back, select, colour buttons — everything the original remote has
+- **Raw passthrough** — send any `cec-ctl` command for edge-case debugging
+- **Topology probe** — on startup, the bridge walks the HDMI bus so it can talk to the AVR specifically, not just broadcast
 
-## 🏗 Architecture
-
-```
-RPi 4 (host network)
-│
-├─ librespot (managed subprocess)
-│   ├─ ALSA hw:0,0 → vc4hdmi0 → HDMI → NAD-AVR
-│   └─ --onevent hook
-│        └─ POST /event → bridge
-│
-├─ hcc-spotify-bridge (Node.js)               :3081
-│   ├─ Supervisor
-│   │   ├─ spawn / restart / state cache
-│   │   └─ exponential backoff (1s → 30s)
-│   │
-│   └─ HTTP/WS Server
-│       ├─ GET  /health        → container health
-│       ├─ GET  /status        → full playback state
-│       ├─ GET  /logs?n=100    → recent log lines
-│       ├─ POST /restart       → manual librespot restart
-│       ├─ POST /event         → internal (onevent hook)
-│       └─ WS   /ws            → live status + log stream
-│
-└─ HCC Dashboard reads /spotify-bridge/status (proxied via Caddy)
-```
+### Eventing + API
+- **Event capture** — every librespot state change (play, pause, track, connect, disconnect) captured via `--onevent` hook
+- **Live dashboard** — HCC dashboard shows real-time playback without ever touching Spotify's Web API
+- **HTTP + WebSocket** — pull via `GET /status`, subscribe via `WS /ws` for push
 
 ---
 
-## ⚙ Configuration
+## Where It Shows Up
+
+The bridge is headless, but two panels in the [HCC Dashboard](https://github.com/xbc4000/hcc-dashboard) live off its API:
+
+<table>
+<tr>
+<td align="center" width="50%">
+<a href="https://github.com/xbc4000/hcc-dashboard/blob/main/docs/screenshots/01-home.png">
+<img src="https://raw.githubusercontent.com/xbc4000/hcc-dashboard/main/docs/screenshots/01-home.png" alt="Now Playing on HOME page"/></a><br>
+<sub><b>HOME</b> — live Now-Playing card (top-right) reads <code>/status</code>, WebSocket push, album art, progress bar</sub>
+</td>
+<td align="center" width="50%">
+<a href="https://github.com/xbc4000/hcc-dashboard/blob/main/docs/screenshots/12-control.png">
+<img src="https://raw.githubusercontent.com/xbc4000/hcc-dashboard/main/docs/screenshots/12-control.png" alt="CEC Control panel"/></a><br>
+<sub><b>CONTROL</b> — SPOTIFY CONNECT + AVR LIGHTS + transport keys wired to the <code>/cec/*</code> and <code>/restart</code> endpoints</sub>
+</td>
+</tr>
+</table>
+
+---
+
+## Architecture
+
+```
+RPi 4  (host network — required for zeroconf + CEC)
+|
++-- librespot  (subprocess supervised by supervisor.js)
+|      |
+|      +-- audio:    ALSA hw:0,0 --> vc4hdmi0 --> HDMI --> NAD AVR
+|      |
+|      +-- --onevent hook (scripts/librespot-event.sh)
+|             POST /event --> bridge
+|
++-- hcc-spotify-bridge  (Node.js)        :3081
+|      |
+|      +-- supervisor.js
+|      |     spawn / crash detect / exponential backoff (1s -> 30s)
+|      |     state cache (track, device, connect status)
+|      |
+|      +-- cec.js
+|      |     wraps `cec-ctl` for power / volume / source / keys
+|      |     topology probe on boot (finds NAD LA and remembers it)
+|      |
+|      +-- server.js
+|             HTTP:
+|                GET  /health            container liveness
+|                GET  /status            full playback state
+|                GET  /logs?n=100        recent log lines
+|                POST /restart           manual librespot restart
+|                POST /event             internal (onevent hook)
+|                POST /cec/vol/{up,down} + /cec/mute
+|                POST /cec/power/{on,off}
+|                POST /cec/source/{active,inactive,set}
+|                POST /cec/remote/:key
+|                POST /cec/raw           raw cec-ctl passthrough
+|                GET  /cec/status        bus topology + last command
+|                POST /cec/swap          re-probe HDMI topology
+|             WebSocket:
+|                /ws                     live status + log stream
+|
++-- HCC Dashboard consumes /spotify-bridge/* via Caddy reverse-proxy
+```
+
+---
+
+## Configuration
 
 All via environment variables:
 
@@ -105,15 +156,18 @@ All via environment variables:
 | `LIBRESPOT_DISABLE_DISCOVERY` | unset | `on` to disable zeroconf |
 | `LIBRESPOT_BIN` | `/usr/local/bin/librespot` | |
 | `LIBRESPOT_CACHE` | `/app/data/librespot` | Persisted via Docker volume |
+| `CEC_DEVICE` | `/dev/cec0` | Host CEC device — `cec-ctl --list-devices` to confirm |
+| `CEC_TARGET` | auto | Logical address discovered by the topology probe; override if needed |
 
 ---
 
-## 🚀 Deploy
+## Deploy
 
 ### Build
 
 ```bash
-cd ~/hcc-spotify-bridge
+git clone git@github.com:xbc4000/hcc-spotify-bridge.git
+cd hcc-spotify-bridge
 docker build -t hcc-spotify-bridge:latest .
 ```
 
@@ -128,63 +182,105 @@ services:
     network_mode: host
     devices:
       - /dev/snd:/dev/snd
+      - /dev/cec0:/dev/cec0
     group_add:
       - audio
+      - video
+    volumes:
+      - /var/run/dbus:/var/run/dbus:ro
+      - /var/run/avahi-daemon:/var/run/avahi-daemon:ro
+      - hcc-spotify-data:/app/data
     environment:
       - LIBRESPOT_NAME=NAD-AVR
       - LIBRESPOT_DEVICE=hw:0,0
       - LIBRESPOT_DEVICE_TYPE=avr
       - LIBRESPOT_BITRATE=320
       - LIBRESPOT_FORMAT=S32
-    volumes:
-      - hcc-spotify-data:/app/data
 
 volumes:
   hcc-spotify-data:
     driver: local
 ```
 
+**Why those mounts matter**
+- `/dev/cec0` — the HDMI-CEC kernel device, required for every `/cec/*` route
+- `/dev/snd` + `audio` group — ALSA output
+- `video` group — CEC (on many distros the CEC device group is `video`, not its own group)
+- `/var/run/dbus` + `/var/run/avahi-daemon` — zeroconf/mDNS publishing so "NAD-AVR" actually appears in the Spotify Connect device picker. Without these the container happily runs but is invisible.
+- `network_mode: host` — mandatory. Zeroconf doesn't cross the Docker bridge.
+
 ### First-Time Claim
 
-1. Start the container — librespot advertises "NAD-AVR" via Spotify Connect zeroconf
-2. Open Spotify on a device on the **same broadcast domain** as the RPi (VLAN40 in this homelab — phone/laptop won't work due to VLAN isolation)
-3. Tap NAD-AVR in the Connect picker — Spotify links the device to your account
-4. After claim, NAD-AVR appears globally on every device logged into your Spotify account, anywhere
+1. Start the container — librespot advertises "NAD-AVR" via zeroconf
+2. Open Spotify on a device on the **same broadcast domain** as the RPi
+3. Tap NAD-AVR in the Connect picker — Spotify links it to your account
+4. After claim, NAD-AVR appears globally on every device on your account
 
-**Cross-VLAN workaround:** Plug a laptop directly into the RPi's LAN port (or temporarily put it on VLAN40), claim in Spotify, unplug. Done forever.
+**Cross-VLAN workaround:** Plug a laptop directly into the RPi's LAN (or temporarily put it on VLAN40), claim, unplug. Done forever.
 
 ---
 
-## 🔌 API
+## API
 
 ```bash
-# Health check
+# Health
 curl http://10.40.40.2:3081/health
 
-# Full playback status
+# Full playback state
 curl http://10.40.40.2:3081/status | jq
 
 # Recent logs
 curl 'http://10.40.40.2:3081/logs?n=50' | jq
 
-# Manual restart
+# Manual librespot restart
 curl -X POST http://10.40.40.2:3081/restart
 
-# Live WebSocket stream
+# Live WebSocket stream (status + log events)
 websocat ws://10.40.40.2:3081/ws
+
+# CEC — AVR control
+curl -X POST http://10.40.40.2:3081/cec/power/on
+curl -X POST http://10.40.40.2:3081/cec/vol/up
+curl -X POST http://10.40.40.2:3081/cec/mute
+curl -X POST http://10.40.40.2:3081/cec/source/set -d '{"input":"hdmi1"}' -H 'content-type: application/json'
+curl -X POST http://10.40.40.2:3081/cec/remote/play
+curl    http://10.40.40.2:3081/cec/status | jq
 ```
 
 ---
 
-## ⚔ Raspotify Comparison
+## HDMI-CEC
+
+Every HDMI source on the NAD bus gets a logical address. The bridge's `cec.js` wraps `cec-ctl` — shelling out is cheap (low-frequency user input), simple (no native bindings to rebuild across kernels), and already handles the protocol edge cases.
+
+**Boot sequence**
+1. `cec-ctl --show-topology` — walk the bus, discover the AVR
+2. Cache its logical address so later commands target it directly instead of broadcasting
+3. `/cec/swap` forces a re-probe if you physically change HDMI wiring
+
+**Remote keys** (via `/cec/remote/:key`)
+`play` `pause` `stop` `prev` `next` `menu` `back` `select` `up` `down` `left` `right` `red` `green` `yellow` `blue` `exit` `home` `info` `power`
+
+All of these appear as press-and-release sequences to the AVR — same as the physical remote.
+
+---
+
+## Raspotify Comparison
 
 | | Raspotify | HCC Spotify Bridge |
 |---|-----------|-------------------|
-| **librespot version** | Lags upstream by months | Pinned in Dockerfile — deliberate upgrades |
+| **librespot version** | Lags upstream by months | Pinned in Dockerfile, deliberate upgrades |
 | **Crash recovery** | systemd unit, unreliable | Exponential backoff (1s → 30s), tested |
-| **Status visibility** | `journalctl` only | HTTP/WS API + HCC dashboard card |
-| **Configuration** | `/etc/raspotify/conf` flat file | env vars in Portainer |
-| **ALSA path** | Often routes through PulseAudio | Direct `hw:0,0` — bit-perfect |
-| **Volume** | Software by default | Fixed/disabled — AVR controls |
-| **Boot reliability** | "Sometimes" | `restart: unless-stopped` |
-| **Signal handling** | systemd PID management | Tini as PID 1, clean propagation |
+| **Status visibility** | `journalctl` only | HTTP + WS API + HCC dashboard card |
+| **Configuration** | Flat text file | env vars in Portainer |
+| **ALSA path** | Often routes through PulseAudio | Direct `hw:0,0`, bit-perfect |
+| **Volume** | Software by default | Fixed; AVR controls |
+| **AVR remote** | Not in scope | **Full HDMI-CEC** (power, vol, mute, source, keys) |
+| **Boot reliability** | "Sometimes" | `restart: unless-stopped` + Tini PID 1 |
+| **Signal handling** | systemd PID management | Tini, clean propagation |
+
+---
+
+<div align="center">
+<sub>Part of the <b>HCC (Homelab Command Center)</b> stack · <a href="https://github.com/xbc4000/hcc-dashboard">hcc-dashboard</a> · <a href="https://github.com/xbc4000/homelab-network">homelab-network</a> · <a href="https://github.com/xbc4000/xbc4000.github.io">HCC Startpage</a></sub>
+</div>
