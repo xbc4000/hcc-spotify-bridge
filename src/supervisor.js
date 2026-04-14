@@ -69,11 +69,19 @@ class LibrespotSupervisor extends EventEmitter {
             '--volume-ctrl', o.volumeCtrl,    // 'log' = phone slider works AND fires volume_changed events for CEC bridge
             '--cache', o.cache,
             '--system-cache', o.cache,
-            '--enable-volume-normalisation',  // smooths out album-to-album loudness
-            '--normalisation-pregain', '0',
             '--zeroconf-port', String(o.zeroconfPort),  // pinned for firewall
             '--quiet'
         ];
+
+        // Volume normalisation — OFF by default for bit-perfect output.
+        // When ON, librespot attenuates loud tracks toward Spotify's -14 LUFS
+        // target, which noticeably reduces the digital level feeding the AVR.
+        // Pregain (dB) adds headroom back; 0 = pure attenuation, +6 ≈ Spotify's
+        // "Loud" preset. Tune via LIBRESPOT_NORMALISATION / _PREGAIN env vars.
+        if (o.normalisation) {
+            args.push('--enable-volume-normalisation');
+            args.push('--normalisation-pregain', String(o.normalisationPregain));
+        }
 
         // The onevent hook script — librespot calls it on every state change
         if (o.onEventScript) {

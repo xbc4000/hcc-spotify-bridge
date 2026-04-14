@@ -35,6 +35,8 @@ var supOpts = {
     initialVolume: parseInt(process.env.LIBRESPOT_INITIAL_VOLUME || '100'),
     volumeCtrl: process.env.LIBRESPOT_VOLUME_CTRL || 'log',
     zeroconfPort: parseInt(process.env.LIBRESPOT_ZEROCONF_PORT || '36879'),
+    normalisation: (process.env.LIBRESPOT_NORMALISATION || 'off') === 'on',
+    normalisationPregain: process.env.LIBRESPOT_NORMALISATION_PREGAIN || '0',
     cache: CACHE_DIR,
     onEventScript: '/app/scripts/librespot-event.sh',
     bridgePort: PORT,
