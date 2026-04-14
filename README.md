@@ -120,6 +120,14 @@ The bridge is headless, but two panels in the [HCC Dashboard](https://github.com
 
 ## Architecture
 
+<div align="center">
+<img src="docs/architecture.png" alt="HCC Spotify Bridge signal chain + API" width="820"/>
+</div>
+
+<sub>Regenerate with <code>python3 scripts/generate-architecture.py</code>.</sub>
+
+### ASCII breakdown
+
 ```
 RPi 4  (host network — required for zeroconf + CEC)
 |
