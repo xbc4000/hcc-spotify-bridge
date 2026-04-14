@@ -17,7 +17,7 @@ librespot supervised with auto-restart · direct ALSA bit-perfect passthrough ·
 
 ![GitHub last commit](https://img.shields.io/github/last-commit/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF)
 ![GitHub repo size](https://img.shields.io/github/repo-size/xbc4000/hcc-spotify-bridge?style=flat-square&color=00B7FF)
-![Audio](https://img.shields.io/badge/Audio-320kbps_S32-1DB954?style=flat-square)
+![Audio](https://img.shields.io/badge/Audio-320kbps_S16_bit--perfect-1DB954?style=flat-square)
 ![Volume](https://img.shields.io/badge/Volume-AVR_Passthrough-FF00B2?style=flat-square)
 ![CEC routes](https://img.shields.io/badge/CEC_Routes-11-FF00B2?style=flat-square)
 
@@ -28,6 +28,7 @@ librespot supervised with auto-restart · direct ALSA bit-perfect passthrough ·
 ## Table of Contents
 
 - [Why This Exists](#why-this-exists)
+- [Reference Rig](#reference-rig)
 - [Features](#features)
 - [Where It Shows Up](#where-it-shows-up)
 - [Architecture](#architecture)
@@ -49,14 +50,35 @@ This bridge fixes both problems: **supervised librespot + HDMI-CEC control of th
 
 ---
 
+## Reference Rig
+
+The bridge is tuned and tested against a real hi-fi system, not a TV soundbar. Every default here — bit-perfect path, no DSP, no normalisation, no soft volume — exists because losses are audible on this chain.
+
+| Role | Gear |
+|------|------|
+| **Source bridge** | Raspberry Pi 4 (DietPi) running this container |
+| **AVR** | NAD T-748 (HDMI switching + 7.1 amp, CEC-capable) |
+| **Fronts L/R** | Paradigm Monitor 7 v.4 towers |
+| **Surrounds** | Paradigm Cinema ADP v.3 (dipole/bipole, 5.1 rear) |
+| **Front heights** | Paradigm ADP v.3 (pair, used as height channels) |
+| **Subs** | dual Paradigm PS-1000 |
+
+Signal path: **Phone → librespot (Pi) → ALSA `hdmi:CARD=vc4hdmi0,DEV=0` → HDMI 2 → NAD T-748 → Monitor 7s + PS-1000s**.
+
+CEC topology: NAD is logical address 5, the Pi claims a Playback device at physical address `1.2.0.0`. Phone Spotify slider drives real analog volume on the NAD via CEC up/down events — no software attenuation in the digital path.
+
+Nothing in the bridge is NAD- or Paradigm-specific; the tuning (format, normalisation defaults, volume-ctrl mode) is the part that matters. If you're on a different AVR, check the [Configuration](#configuration) section — every quirk is an env var.
+
+---
+
 ## Features
 
 ### Audio Path
 - **Managed librespot** — spawns as a subprocess, auto-restarts on any crash with exponential backoff (1s → 30s max), resets after 60s of stability
-- **Bit-perfect ALSA** — direct `hw:0,0` passthrough, no PulseAudio, no PipeWire, no resampling
-- **Fixed volume** — software volume disabled (`--volume-ctrl fixed`), your AVR controls the volume
-- **Volume normalisation** — smooths album-to-album loudness differences
-- **320 kbps / S32** — Spotify's top-tier bitrate piped through as signed 32-bit native
+- **Bit-perfect ALSA** — `hdmi:CARD=vc4hdmi0,DEV=0` direct IEC958 passthrough, no PulseAudio, no PipeWire, no resampling
+- **Phone slider → AVR volume** — librespot runs `--volume-ctrl log`, volume_changed events are translated into real HDMI-CEC volume steps on the AVR (opt-in via `CEC_BRIDGE_VOLUME=on`)
+- **No normalisation by default** — Spotify's -14 LUFS loudness target would attenuate loud masters 3-6 dB before HDMI; disabled for maximum digital level. Opt back in with `LIBRESPOT_NORMALISATION=on` + `LIBRESPOT_NORMALISATION_PREGAIN=6` for consistent playlist loudness.
+- **320 kbps / S16** — Spotify's top-tier Vorbis bitrate, decoded to S16 PCM (vc4hdmi's native IEC958 format; higher bit depths are rejected by the driver)
 - **Pinned binary** — librespot version locked in the Dockerfile, upgrades are deliberate
 - **Tini PID 1** — proper signal propagation, clean container shutdown
 
