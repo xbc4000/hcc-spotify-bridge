@@ -30,11 +30,13 @@ services:
       - LIBRESPOT_BITRATE=320
       - LIBRESPOT_FORMAT=S16
       - LIBRESPOT_INITIAL_VOLUME=100
-      - LIBRESPOT_VOLUME_CTRL=log
+      # Phone Spotify slider = digital attenuation of the Spotify stream only.
+      # HCC app is the sole controller of NAD-AVR hardware volume via CEC.
+      - LIBRESPOT_VOLUME_CTRL=softvol
       - CEC_DEVICE=/dev/cec0
       - CEC_TARGET_LA=5
       - CEC_VOLUME_SWAP=0
-      - CEC_BRIDGE_VOLUME=on
+      - CEC_BRIDGE_VOLUME=off
 
     volumes:
       - hcc-spotify-data:/app/data
