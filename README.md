@@ -1,5 +1,9 @@
 <div align="center">
 
+[![TechX Maestro](https://img.shields.io/badge/TechX_Maestro-FF00B2?style=for-the-badge&labelColor=000000)](https://techxmaestro.com)
+[![HCC Ecosystem](https://img.shields.io/badge/HCC_Ecosystem-00d4ff?style=for-the-badge&labelColor=000000)](https://github.com/xbc4000?tab=repositories)
+[![Production](https://img.shields.io/badge/Production-00ff88?style=for-the-badge&labelColor=000000)]()
+
 <img src="social-preview.png" alt="HCC Spotify Bridge" width="880"/>
 
 # HCC SPOTIFY BRIDGE
