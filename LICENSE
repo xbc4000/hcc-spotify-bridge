@@ -1,0 +1,55 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 TechX Maestro. All rights reserved.
+
+This software and all associated files, configuration, documentation, and
+assets contained in this repository (collectively, the "Software") are the
+proprietary and confidential property of TechX Maestro.
+
+1. GRANT OF RIGHTS
+   The source code in this repository is made visible for the purposes of
+   reference, audit, and evaluation only. No other rights, express or implied,
+   are granted under this license.
+
+2. RESTRICTIONS
+   Without the prior written permission of TechX Maestro, you may NOT:
+   (a) copy, reproduce, or redistribute the Software or any portion thereof;
+   (b) modify, adapt, translate, or create derivative works based on the
+       Software;
+   (c) use the Software, in whole or in part, in any product, service, or
+       deployment, whether commercial or non-commercial;
+   (d) sublicense, sell, rent, lease, lend, or otherwise transfer the Software;
+   (e) reverse engineer, decompile, or disassemble the Software, except to
+       the limited extent such activity is expressly permitted by applicable
+       law notwithstanding this restriction;
+   (f) remove, obscure, or alter any copyright, trademark, or other
+       proprietary notices contained in the Software.
+
+3. TRADEMARKS
+   "TechX Maestro", "HCC", "Home Control Center", "Serina", "Nigel",
+   "TechX OS", and all associated logos, wordmarks, icons, pet sprites,
+   pixel art, colour schemes, and visual designs are trademarks of
+   TechX Maestro. Nothing in this license grants any right or licence to
+   use these trademarks.
+
+4. THIRD-PARTY COMPONENTS
+   The Software may incorporate third-party components that are licensed
+   under their own terms. Such components retain their original licenses,
+   which are preserved with attribution where applicable.
+
+5. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+6. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL TECHX MAESTRO BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+   OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
+
+7. TERMINATION
+   Any breach of this license immediately and automatically terminates any
+   rights granted hereunder.
+
+For licensing, partnership, or permission inquiries, contact TechX Maestro.
