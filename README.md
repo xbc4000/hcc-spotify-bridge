@@ -3,6 +3,7 @@
 [![TechX Maestro](https://img.shields.io/badge/TechX_Maestro-FF00B2?style=for-the-badge&labelColor=000000)](https://techxmaestro.com)
 [![HCC Ecosystem](https://img.shields.io/badge/HCC_Ecosystem-00d4ff?style=for-the-badge&labelColor=000000)](https://github.com/xbc4000?tab=repositories)
 [![Production](https://img.shields.io/badge/Production-00ff88?style=for-the-badge&labelColor=000000)]()
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-ff3366?style=for-the-badge&labelColor=000000)](LICENSE)
 
 <img src="social-preview.png" alt="HCC Spotify Bridge" width="880"/>
 
@@ -312,6 +313,25 @@ All of these appear as press-and-release sequences to the AVR — same as the ph
 | **AVR remote** | Not in scope | **Full HDMI-CEC** (power, vol, mute, source, keys) |
 | **Boot reliability** | "Sometimes" | `restart: unless-stopped` + Tini PID 1 |
 | **Signal handling** | systemd PID management | Tini, clean propagation |
+
+---
+
+## License & Legal
+
+**Proprietary.** &copy; 2026 TechX Maestro. All rights reserved.
+
+Source is published for reference, audit, and evaluation only. You may not
+copy, modify, redistribute, or re-use any portion of this repository in any
+product, service, or deployment &mdash; commercial or non-commercial &mdash;
+without prior written permission from TechX Maestro.
+
+**TechX Maestro**, **HCC**, **Home Control Center**, **Serina**, **Nigel**,
+and **TechX OS** are trademarks of TechX Maestro.
+
+- Full license: [LICENSE](LICENSE)
+- Trademark / legal notice: [NOTICE.md](NOTICE.md)
+- Security issues: [SECURITY.md](SECURITY.md)
+- Contribution policy: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

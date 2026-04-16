@@ -1,3 +1,15 @@
+/*!
+ * Copyright (c) 2026 TechX Maestro. All rights reserved.
+ *
+ * Proprietary software — part of HCC (Home Control Center).
+ * This file may not be copied, modified, redistributed, or used in any
+ * product or service, commercial or non-commercial, without prior written
+ * permission. See LICENSE and NOTICE.md in the repository root.
+ *
+ * TechX Maestro, HCC, Home Control Center, Serina, Nigel, and TechX OS
+ * are trademarks of TechX Maestro.
+ */
+
 // =============================================================================
 // HCC Spotify Bridge — librespot supervisor
 // =============================================================================
