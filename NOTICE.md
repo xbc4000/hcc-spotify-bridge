@@ -10,9 +10,9 @@ of **TechX Maestro** and may not be used without express written permission:
 - **TechX Maestro** &mdash; parent brand
 - **HCC** / **Home Control Center** &mdash; product
 - **Serina** &mdash; AI assistant sub-product
-- **Nigel** &mdash; Serina's virtual pet
+- **Nigel** &mdash; Serina's virtual companion
 - **TechX OS** &mdash; Fedora bootc distribution
-- Associated logos, wordmarks, icons, pet sprites, pixel art, colour
+- Associated logos, wordmarks, icons, Nigel sprites, pixel art, colour
   schemes, typography choices, and UI visual design
 
 ## Copyright
